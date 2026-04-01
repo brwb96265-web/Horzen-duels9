@@ -1,0 +1,177 @@
+--[[
+    HORZEN HUB V27 - CLASSIC BLACK EDITION
+    - THEME: OLD-SCHOOL DARK UI
+    - ENGINE: PERFORMANCE ORIENTED
+    - FEATURES: FLING, BANG, FLY, INV, NOCLIP
+]]
+
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+local Player = game:GetService("Players").LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+
+-- [ Configuration ]
+_G.Fly = false
+_G.BangActive = false
+_G.FlingActive = false
+_G.Noclip = false
+_G.Inv = false
+
+-- [ CLASSIC UI DESIGN ]
+local Main = Instance.new("ScreenGui", CoreGui)
+Main.Name = "HorzenClassic"
+
+-- HZ LOGO TOGGLE
+local Logo = Instance.new("ImageButton", Main)
+Logo.Size = UDim2.new(0, 60, 0, 60)
+Logo.Position = UDim2.new(0, 15, 0.5, -30)
+Logo.Image = "rbxassetid://16120485974" 
+Logo.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Logo.BorderSizePixel = 1
+Logo.BorderColor3 = Color3.fromRGB(50, 50, 50)
+Logo.Draggable = true
+
+-- MAIN MENU (OLD BLACK STYLE)
+local Menu = Instance.new("Frame", Main)
+Menu.Size = UDim2.new(0, 210, 0, 440)
+Menu.Position = UDim2.new(0.5, -105, 0.5, -220)
+Menu.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+Menu.BorderSizePixel = 2
+Menu.BorderColor3 = Color3.fromRGB(40, 40, 40)
+Menu.Visible = false
+Menu.Active = true
+Menu.Draggable = true
+
+local Title = Instance.new("TextLabel", Menu)
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.Text = "HORZEN HUB V27"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 16
+
+local TargetInput = Instance.new("TextBox", Menu)
+TargetInput.Size = UDim2.new(0.9, 0, 0, 30)
+TargetInput.Position = UDim2.new(0.05, 0, 0, 45)
+TargetInput.PlaceholderText = "Target Name..."
+TargetInput.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+TargetInput.TextColor3 = Color3.new(1,1,1)
+TargetInput.BorderSizePixel = 1
+TargetInput.BorderColor3 = Color3.fromRGB(60, 60, 60)
+
+local Container = Instance.new("ScrollingFrame", Menu)
+Container.Size = UDim2.new(1, -10, 1, -90)
+Container.Position = UDim2.new(0, 5, 0, 85)
+Container.BackgroundTransparency = 1
+Container.ScrollBarThickness = 2
+local List = Instance.new("UIListLayout", Container)
+List.Padding = UDim.new(0, 4)
+
+Logo.MouseButton1Click:Connect(function() Menu.Visible = not Menu.Visible end)
+
+-- [ HELPERS ]
+local function GetTarget()
+    local name = TargetInput.Text:lower()
+    if name == "" then return nil end
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p ~= Player and (p.Name:lower():sub(1, #name) == name or p.DisplayName:lower():sub(1, #name) == name) then
+            return p
+        end
+    end
+    return nil
+end
+
+local function CreateButton(name, color, callback)
+    local btn = Instance.new("TextButton", Container)
+    btn.Size = UDim2.new(1, 0, 0, 32)
+    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.SourceSans
+    btn.TextSize = 14
+    btn.BorderSizePixel = 1
+    btn.BorderColor3 = Color3.fromRGB(45, 45, 45)
+    
+    local active = false
+    btn.MouseButton1Click:Connect(function()
+        active = not active
+        btn.BackgroundColor3 = active and color or Color3.fromRGB(25, 25, 25)
+        callback(active)
+    end)
+end
+
+-- [ FEATURES ]
+
+CreateButton("Kill/Fling Player", Color3.fromRGB(150, 0, 0), function(v)
+    _G.FlingActive = v
+    local target = GetTarget()
+    if v and target and target.Character then
+        task.spawn(function()
+            local root = Player.Character.HumanoidRootPart
+            while _G.FlingActive and target.Character:FindFirstChild("HumanoidRootPart") do
+                root.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(root.Orientation.Y + 90), 0)
+                root.Velocity = Vector3.new(500000, 500000, 500000)
+                task.wait()
+            end
+            root.Velocity = Vector3.new(0,0,0)
+        end)
+    end
+end)
+
+CreateButton("Bang Target", Color3.fromRGB(100, 0, 100), function(v)
+    _G.BangActive = v
+    local target = GetTarget()
+    if v and target then
+        task.spawn(function()
+            while _G.BangActive do
+                if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                    Player.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 1.1)
+                end
+                task.wait()
+            end
+        end)
+    end
+end)
+
+CreateButton("Invisible Mode", Color3.fromRGB(50, 50, 50), function(v)
+    local char = Player.Character
+    if v then
+        for _, p in pairs(char:GetDescendants()) do
+            if p:IsA("BasePart") or p:IsA("Decal") then p.Transparency = 1 end
+        end
+    else
+        for _, p in pairs(char:GetDescendants()) do
+            if p:IsA("BasePart") or p:IsA("Decal") then p.Transparency = 0 end
+        end
+    end
+end)
+
+CreateButton("Fly (V Key)", Color3.fromRGB(0, 100, 100), function(v)
+    _G.Fly = v
+    local bv = Instance.new("BodyVelocity", Player.Character.HumanoidRootPart)
+    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    task.spawn(function()
+        while _G.Fly do
+            bv.Velocity = workspace.CurrentCamera.CFrame.LookVector * 70
+            task.wait()
+        end
+        bv:Destroy()
+    end)
+end)
+
+CreateButton("Noclip", Color3.fromRGB(100, 100, 0), function(v)
+    _G.Noclip = v
+    RunService.Stepped:Connect(function()
+        if _G.Noclip and Player.Character then
+            for _, p in pairs(Player.Character:GetDescendants()) do
+                if p:IsA("BasePart") then p.CanCollide = false end
+            end
+        end
+    end)
+end)
+
+CreateButton("WalkSpeed (100)", Color3.fromRGB(0, 100, 0), function(v)
+    Player.Character.Humanoid.WalkSpeed = v and 100 or 16
+end)
