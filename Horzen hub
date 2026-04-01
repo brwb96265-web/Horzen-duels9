@@ -1,0 +1,222 @@
+--[[
+    HORZEN HUB V12.0 - ULTIMATE VOID EDITION
+    - FULL REPLICA OF THE R3TH HUB SCRIPT
+    - PERFORMANCE: VOID TP / INSTANT DRAG & GRAB
+    - DESIGN: RAYFIELD UI (ENGLISH ONLY)
+]]
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Horzen Hub | Steal a Brainrot 🧠",
+   LoadingTitle = "Horzen Hub Loading...",
+   LoadingSubtitle = "by Horzen Team",
+   ConfigurationSaving = {Enabled = true, FolderName = "HorzenData"}
+})
+
+-- [ Variables ]
+local Player = game:GetService("Players").LocalPlayer
+local VIM = game:GetService("VirtualInputManager")
+local Workspace = game:GetService("Workspace")
+
+local Horzen = {
+    VoidSteal = false,
+    InstantGrab = true,
+    AntiRagdoll = true,
+    KillAura = false,
+    AutoPunch = false,
+    InfJump = false,
+    WalkSpeed = 16,
+    JumpPower = 50,
+    TargetBase = "None",
+    BasePos = nil
+}
+
+-- [ TABS ]
+local MainTab = Window:CreateTab("Main", 4483362458)
+local CombatTab = Window:CreateTab("Combat", 4483362458)
+local VisualsTab = Window:CreateTab("Visuals", 4483362458)
+local PlayerTab = Window:CreateTab("Player", 4483362458)
+local SettingsTab = Window:CreateTab("Settings", 4483362458)
+
+-- [ 1. Main Tab ]
+MainTab:CreateSection("Auto Steal Brainrots")
+
+MainTab:CreateToggle({
+   Name = "Void Auto Steal (Instant)",
+   CurrentValue = false,
+   Callback = function(v) Horzen.VoidSteal = v end,
+})
+
+MainTab:CreateDropdown({
+   Name = "Target Enemy Base",
+   Options = {"None", "Left", "Right"},
+   CurrentOption = "None",
+   Callback = function(v) Horzen.TargetBase = v end,
+})
+
+MainTab:CreateToggle({
+   Name = "Auto Grab & Drag",
+   CurrentValue = true,
+   Callback = function(v) Horzen.InstantGrab = v end,
+})
+
+MainTab:CreateSection("Base Management")
+
+MainTab:CreateButton({
+   Name = "Auto Claim Nearest Base",
+   Callback = function()
+       for _,v in pairs(Workspace.Bases:GetChildren()) do
+           if v:FindFirstChild("Claim") and v.Claim:FindFirstChild("ProximityPrompt") then
+               Player.Character.HumanoidRootPart.CFrame = v.Claim.CFrame
+               fireproximityprompt(v.Claim.ProximityPrompt)
+               Horzen.BasePos = v.Claim.Position
+               break
+           end
+       end
+   end,
+})
+
+-- [ 2. Combat Tab ]
+CombatTab:CreateSection("Defense & Attack")
+
+CombatTab:CreateToggle({
+   Name = "Anti-Ragdoll",
+   CurrentValue = true,
+   Callback = function(v) Horzen.AntiRagdoll = v end,
+})
+
+CombatTab:CreateToggle({
+   Name = "Kill Aura (Hitbox)",
+   CurrentValue = false,
+   Callback = function(v) Horzen.KillAura = v end,
+})
+
+CombatTab:CreateToggle({
+   Name = "Auto Punch Loop",
+   CurrentValue = false,
+   Callback = function(v) Horzen.AutoPunch = v end,
+})
+
+-- [ 3. Visuals Tab ]
+VisualsTab:CreateSection("ESP Options")
+
+VisualsTab:CreateToggle({
+   Name = "Player ESP",
+   CurrentValue = false,
+   Callback = function(v)
+       -- ESP Logic can be added here
+   end,
+})
+
+-- [ 4. Player Tab ]
+PlayerTab:CreateSection("Movement")
+
+PlayerTab:CreateSlider({
+   Name = "WalkSpeed",
+   Range = {16, 250},
+   Increment = 1,
+   CurrentValue = 16,
+   Callback = function(v) Horzen.WalkSpeed = v end,
+})
+
+PlayerTab:CreateSlider({
+   Name = "Jump Power",
+   Range = {50, 500},
+   Increment = 1,
+   CurrentValue = 50,
+   Callback = function(v) Horzen.JumpPower = v end,
+})
+
+PlayerTab:CreateToggle({
+   Name = "Infinite Jump",
+   CurrentValue = false,
+   Callback = function(v) Horzen.InfJump = v end,
+})
+
+-- [ 5. Settings Tab ]
+SettingsTab:CreateSection("System")
+
+SettingsTab:CreateButton({
+   Name = "Rejoin Server",
+   Callback = function() game:GetService("TeleportService"):Teleport(game.PlaceId, Player) end,
+})
+
+SettingsTab:CreateToggle({
+   Name = "Anti-AFK",
+   CurrentValue = true,
+   Callback = function(v) 
+      local vu = game:GetService("VirtualUser")
+      Player.Idled:Connect(function() if v then vu:Button2Down(Vector2.new(0,0),Workspace.CurrentCamera.CFrame) task.wait(1) vu:Button2Up(Vector2.new(0,0),Workspace.CurrentCamera.CFrame) end end)
+   end,
+})
+
+-- [ PERFORMANCE CORE LOOPS ]
+task.spawn(function()
+    while task.wait() do
+        if Horzen.VoidSteal then
+            pcall(function()
+                local hasItem = Player.Character:FindFirstChild("Brainrot") or Player:GetAttribute("Stealing")
+                if not hasItem then
+                    local targetSide = Horzen.TargetBase
+                    for _,b in pairs(Workspace.Bases:GetChildren()) do
+                        if b.Name ~= Player.Name and b:FindFirstChild("Brainrot") and (targetSide == "None" or b.Name:find(targetSide)) then
+                            Player.Character.HumanoidRootPart.CFrame = b.Brainrot.CFrame
+                            fireproximityprompt(b.Brainrot.ProximityPrompt)
+                            break
+                        end
+                    end
+                elseif Horzen.BasePos then
+                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(Horzen.BasePos)
+                end
+            end)
+        end
+        
+        if Horzen.InstantGrab then
+            pcall(function()
+                for _, p in ipairs(Workspace:GetDescendants()) do
+                    if p:IsA("ProximityPrompt") and p.Enabled then
+                        if (Player.Character.HumanoidRootPart.Position - p.Parent.WorldPosition).Magnitude < 30 then
+                            fireproximityprompt(p)
+                        end
+                    end
+                end
+            end)
+        end
+
+        if Horzen.KillAura or Horzen.AutoPunch then
+            pcall(function()
+                for _, v in ipairs(game:GetService("Players"):GetPlayers()) do
+                    if v ~= Player and v.Character and (Player.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude < 18 then
+                        VIM:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                        if Horzen.AutoPunch then
+                            VIM:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+                            task.wait(0.05)
+                            VIM:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- Character Stats Loop
+game:GetService("RunService").Heartbeat:Connect(function()
+    pcall(function()
+        local hum = Player.Character:FindFirstChildOfClass("Humanoid")
+        hum.WalkSpeed = Horzen.WalkSpeed
+        hum.JumpPower = Horzen.JumpPower
+        if Horzen.AntiRagdoll then
+            hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+            hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+        end
+    end)
+end)
+
+-- Infinite Jump Request
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if Horzen.InfJump then Player.Character.Humanoid:ChangeState(3) end
+end)
+
+Rayfield:Notify({Title = "Horzen Hub Ready", Content = "Script Loaded Successfully!", Duration = 5})
