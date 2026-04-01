@@ -1,0 +1,146 @@
+--[[
+    HORZEN HUB V6.0 - OVERPOWERED EDITION
+    - Created for: Steal a Brainrots
+    - Mode: God / Flash / Combat
+]]
+
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+local Player = game:GetService("Players").LocalPlayer
+local RunService = game:GetService("RunService")
+local VIM = game:GetService("VirtualInputManager")
+
+local Horzen = {
+    FlashFarm = false,
+    FarmSide = "Left",
+    InstantGrab = true,
+    KillAura = false,
+    AntiRagdoll = true,
+    WalkSpeed = 32,
+    JumpPower = 50,
+    AutoDeposit = true
+}
+
+-- [ Coordinates ]
+local Pos = {
+    Home = Vector3.new(0, 3.5, 60),
+    Left = Vector3.new(-40, 3.5, 2),
+    Right = Vector3.new(40, 3.5, 2)
+}
+
+-- [ Combat: Kill Aura / Hitbox ]
+task.spawn(function()
+    while task.wait(0.1) do
+        if Horzen.KillAura then
+            pcall(function()
+                for _, v in ipairs(game:GetService("Players"):GetPlayers()) do
+                    if v ~= Player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                        local dist = (Player.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                        if dist < 15 then
+                            -- محاكاة ضرب الخصم (يعتمد على سلاحك المجهز)
+                            VIM:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- [ Logic: Flash Farm & Auto Grab ]
+task.spawn(function()
+    while task.wait() do
+        if Horzen.FlashFarm then
+            local stealing = Player:GetAttribute("Stealing")
+            local target = stealing and Pos.Home or (Horzen.FarmSide == "Left" and Pos.Left or Pos.Right)
+            
+            if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+                Player.Character.HumanoidRootPart.CFrame = CFrame.new(target)
+            end
+        end
+        
+        if Horzen.InstantGrab or Horzen.FlashFarm then
+            for _, p in ipairs(workspace:GetDescendants()) do
+                if p:IsA("ProximityPrompt") and p.Enabled then
+                    if (Player.Character.HumanoidRootPart.Position - p.Parent.WorldPosition).Magnitude < 25 then
+                        fireproximityprompt(p)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- [ Anti-Ragdoll & Movement Bypass ]
+RunService.Stepped:Connect(function()
+    if Horzen.AntiRagdoll and Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+        Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+    end
+    if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid.WalkSpeed = Horzen.WalkSpeed
+        Player.Character.Humanoid.JumpPower = Horzen.JumpPower
+    end
+end)
+
+-- [ Modern GUI Construction ]
+local Library = {} -- نظام واجهة مبسط واحترافي
+local sg = Instance.new("ScreenGui", Player.PlayerGui)
+sg.Name = "HorzenV6"
+
+local Main = Instance.new("Frame", sg)
+Main.Size = UDim2.new(0, 350, 0, 350)
+Main.Position = UDim2.new(0.5, -175, 0.5, -175)
+Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Draggable = true
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 12)
+
+-- [ Tabs / Buttons ]
+local function MakeButton(text, y, callback)
+    local b = Instance.new("TextButton", Main)
+    b.Size = UDim2.new(0.42, 0, 0, 40)
+    b.Position = UDim2.new(y > 200 and 0.53 or 0.05, 0, 0, y > 200 and y-150 or y)
+    b.Text = text .. ": OFF"
+    b.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Font = Enum.Font.GothamBold
+    Instance.new("UICorner", b)
+    
+    local s = false
+    b.MouseButton1Click:Connect(function()
+        s = not s
+        b.Text = text .. (s and ": ON" or ": OFF")
+        b.BackgroundColor3 = s and Color3.fromRGB(0, 180, 255) or Color3.fromRGB(30, 30, 30)
+        callback(s)
+    end)
+end
+
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1,0,0,50)
+Title.Text = "HORZEN HUB V6 - OP"
+Title.TextColor3 = Color3.fromRGB(0, 255, 200)
+Title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Title.Font = Enum.Font.GothamBold
+
+-- [ Feature List ]
+MakeButton("Flash Farm", 70, function(v) Horzen.FlashFarm = v end)
+MakeButton("Kill Aura", 120, function(v) Horzen.KillAura = v end)
+MakeButton("Instant Grab", 170, function(v) Horzen.InstantGrab = v end)
+MakeButton("Farm Side (L/R)", 70, function(v) Horzen.FarmSide = v and "Right" or "Left" end)
+MakeButton("Anti Ragdoll", 120, function(v) Horzen.AntiRagdoll = v end)
+MakeButton("Inf Jump", 170, function(v) 
+    game:GetService("UserInputService").JumpRequest:Connect(function()
+        if v then Player.Character.Humanoid:ChangeState(3) end
+    end)
+end)
+
+local Copy = Instance.new("TextButton", Main)
+Copy.Size = UDim2.new(0.9, 0, 0, 40)
+Copy.Position = UDim2.new(0.05, 0, 0, 280)
+Copy.Text = "COPY DISCORD & UPDATES"
+Copy.BackgroundColor3 = Color3.fromRGB(114, 137, 218)
+Copy.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", Copy)
+Copy.MouseButton1Click:Connect(function() setclipboard("https://discord.gg/Stph7N2QQv") end)
