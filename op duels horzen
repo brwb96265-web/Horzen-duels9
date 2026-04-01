@@ -1,0 +1,132 @@
+--[[
+    HORZEN STEALER - GOD MODE (V4.0)
+    - Instant Teleport Farm
+    - Full Auto Grab & Drop
+    - No Lag / No Delay
+]]
+
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+local Player = game:GetService("Players").LocalPlayer
+local HRP = Player.Character:WaitForChild("HumanoidRootPart")
+
+local Settings = {
+    AutoLeft = false,
+    AutoRight = false,
+    AutoGrab = true,
+    FastTP = true
+}
+
+-- [ Precise Coordinates for Steal a Brainrots ]
+local Positions = {
+    Home = Vector3.new(0, 3.5, 58),
+    LeftEnemy = Vector3.new(-38, 3.5, -2),
+    RightEnemy = Vector3.new(38, 3.5, -2)
+}
+
+-- [ Instant TP Function ]
+local function InstantTP(TargetPos)
+    if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+        Player.Character.HumanoidRootPart.CFrame = CFrame.new(TargetPos)
+    end
+end
+
+-- [ Super Fast Auto Interaction ]
+task.spawn(function()
+    while task.wait() do
+        if Settings.AutoGrab or Settings.AutoLeft or Settings.AutoRight then
+            pcall(function()
+                for _, v in ipairs(workspace:GetDescendants()) do
+                    if v:IsA("ProximityPrompt") and v.Enabled then
+                        -- High Range Grab
+                        local dist = (Player.Character.HumanoidRootPart.Position - v.Parent.WorldPosition).Magnitude
+                        if dist < 25 then
+                            fireproximityprompt(v)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- [ The Real Steal Loop ]
+task.spawn(function()
+    while task.wait(0.3) do
+        if Settings.AutoLeft then
+            local stealing = Player:GetAttribute("Stealing")
+            if not stealing then
+                InstantTP(Positions.LeftEnemy)
+            else
+                InstantTP(Positions.Home)
+            end
+        elseif Settings.AutoRight then
+            local stealing = Player:GetAttribute("Stealing")
+            if not stealing then
+                InstantTP(Positions.RightEnemy)
+            else
+                InstantTP(Positions.Home)
+            end
+        end
+    end
+end)
+
+-- [ Modern GUI ]
+local sg = Instance.new("ScreenGui", Player.PlayerGui)
+local Main = Instance.new("Frame", sg)
+Main.Size = UDim2.new(0, 220, 0, 320)
+Main.Position = UDim2.new(0.5, -110, 0.5, -160)
+Main.BackgroundColor3 = Color3.fromRGB(20, 0, 0) -- Dark Red Theme
+Main.Draggable = true
+Main.Active = true
+Instance.new("UICorner", Main)
+
+local function CreateBtn(name, y, callback)
+    local btn = Instance.new("TextButton", Main)
+    btn.Size = UDim2.new(0.9, 0, 0, 40)
+    btn.Position = UDim2.new(0.05, 0, 0, y)
+    btn.Text = name .. ": OFF"
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.GothamBold
+    Instance.new("UICorner", btn)
+
+    local state = false
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        btn.Text = name .. (state and ": ON" or ": OFF")
+        btn.BackgroundColor3 = state and Color3.fromRGB(200, 0, 0) or Color3.fromRGB(40, 40, 40)
+        callback(state)
+    end)
+end
+
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.Text = "HORZEN V4 - GOD"
+Title.TextColor3 = Color3.new(1,1,1)
+Title.BackgroundColor3 = Color3.fromRGB(10, 0, 0)
+Title.Font = Enum.Font.GothamBold
+
+CreateBtn("AUTO STEAL LEFT", 60, function(v) Settings.AutoLeft = v end)
+CreateBtn("AUTO STEAL RIGHT", 110, function(v) Settings.AutoRight = v end)
+CreateBtn("INSTANT GRAB", 160, function(v) Settings.AutoGrab = v end)
+
+local Drop = Instance.new("TextButton", Main)
+Drop.Size = UDim2.new(0.9, 0, 0, 40)
+Drop.Position = UDim2.new(0.05, 0, 0, 210)
+Drop.Text = "DROP (G)"
+Drop.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+Drop.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", Drop)
+Drop.MouseButton1Click:Connect(function()
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, "G", false, game)
+end)
+
+local Disc = Instance.new("TextButton", Main)
+Disc.Size = UDim2.new(0.9, 0, 0, 30)
+Disc.Position = UDim2.new(0.05, 0, 0, 270)
+Disc.Text = "Copy Discord"
+Disc.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
+Disc.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", Disc)
+Disc.MouseButton1Click:Connect(function() setclipboard("https://discord.gg/Stph7N2QQv") end)
