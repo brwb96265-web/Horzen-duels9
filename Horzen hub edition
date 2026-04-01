@@ -1,0 +1,130 @@
+--[[
+    HORZEN HUB - ZYPHROT STYLE FINAL
+    - FEATURES: 12 FUNCTIONS INCLUDED
+    - TOGGLE: CLICK HZ LOGO TO OPEN
+    - DESIGN: NEON GLOW STYLE (ZYPHROT REPLICA)
+]]
+
+local Player = game:GetService("Players").LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+-- [ MAIN UI SETUP ]
+local Main = Instance.new("ScreenGui", CoreGui)
+Main.Name = "HorzenZyphrotFinal"
+
+-- 1. HZ LOGO BUTTON (TO OPEN MENU)
+local OpenBtn = Instance.new("ImageButton", Main)
+OpenBtn.Size = UDim2.new(0, 65, 0, 65)
+OpenBtn.Position = UDim2.new(0.02, 0, 0.4, 0)
+OpenBtn.Image = "rbxassetid://16120485974" -- Your HZ Logo ID
+OpenBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+OpenBtn.BorderSizePixel = 0
+local LogoCorner = Instance.new("UICorner", OpenBtn)
+LogoCorner.CornerRadius = UDim.new(0, 15)
+local LogoStroke = Instance.new("UIStroke", OpenBtn)
+LogoStroke.Color = Color3.fromRGB(0, 255, 255)
+LogoStroke.Thickness = 2
+
+-- 2. THE MAIN MENU FRAME
+local Menu = Instance.new("Frame", Main)
+Menu.Size = UDim2.new(0, 210, 0, 420)
+Menu.Position = UDim2.new(0.02, 0, 0.4, -210)
+Menu.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+Menu.BackgroundTransparency = 0.15
+Menu.Visible = false
+local MenuCorner = Instance.new("UICorner", Menu)
+local MenuStroke = Instance.new("UIStroke", Menu)
+MenuStroke.Color = Color3.fromRGB(0, 255, 255) -- Neon Cyan Glow
+
+local Title = Instance.new("TextLabel", Menu)
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.Text = "HORZEN HUB V16"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+Title.BackgroundTransparency = 1
+
+local Scroll = Instance.new("ScrollingFrame", Menu)
+Scroll.Size = UDim2.new(1, -10, 1, -60)
+Scroll.Position = UDim2.new(0, 5, 0, 50)
+Scroll.BackgroundTransparency = 1
+Scroll.ScrollBarThickness = 2
+Scroll.CanvasSize = UDim2.new(0, 0, 1.5, 0)
+
+local Layout = Instance.new("UIListLayout", Scroll)
+Layout.Padding = UDim.new(0, 7)
+Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+-- [ LOGIC TO OPEN/CLOSE ]
+OpenBtn.MouseButton1Click:Connect(function()
+    Menu.Visible = true
+    OpenBtn.Visible = false
+end)
+
+-- [ BUTTON CREATOR FUNCTION ]
+local function AddFeature(name, color, callback, isToggle)
+    local btn = Instance.new("TextButton", Scroll)
+    btn.Size = UDim2.new(0.95, 0, 0, 38)
+    btn.Text = name
+    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 13
+    Instance.new("UICorner", btn)
+    local stroke = Instance.new("UIStroke", btn)
+    stroke.Color = color
+    stroke.Thickness = 1
+
+    local active = false
+    btn.MouseButton1Click:Connect(function()
+        if isToggle then
+            active = not active
+            btn.BackgroundColor3 = active and color or Color3.fromRGB(25, 25, 25)
+            callback(active)
+        else
+            callback()
+        end
+    end)
+end
+
+-- [ THE 12 REQUESTED FEATURES ]
+local Cyan = Color3.fromRGB(0, 255, 255)
+local Red = Color3.fromRGB(255, 50, 50)
+
+AddFeature("Auto Grab", Cyan, function(v) _G.Grab = v end, true)
+AddFeature("Safe Inf Jump", Cyan, function(v) _G.InfJ = v end, true)
+AddFeature("Hover Fly", Cyan, function(v) _G.Hv = v end, true)
+AddFeature("Auto Left", Red, function(v) _G.AL = v _G.AR = false end, true)
+AddFeature("Auto Right", Red, function(v) _G.AR = v _G.AL = false end, true)
+AddFeature("Tp Left Enemy", Red, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(-45, 5, 0) end, false)
+AddFeature("Tp Right Enemy", Red, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(45, 5, 0) end, false)
+AddFeature("Drop Brainrot", Cyan, function() game:GetService("VirtualInputManager"):SendKeyEvent(true, "G", false, game) end, false)
+AddFeature("Tp Down", Cyan, function() Player.Character.HumanoidRootPart.CFrame *= CFrame.new(0, -15, 0) end, false)
+AddFeature("Play Left", Cyan, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(-45, 5, 0) task.wait(0.1) game:GetService("VirtualInputManager"):SendKeyEvent(true, "E", false, game) end, false)
+AddFeature("Play Right", Cyan, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(45, 5, 0) task.wait(0.1) game:GetService("VirtualInputManager"):SendKeyEvent(true, "Q", false, game) end, false)
+AddFeature("Xray Walls", Cyan, function(v) for _,p in pairs(workspace:GetDescendants()) do if p:IsA("BasePart") then p.Transparency = v and 0.5 or 0 end end end, true)
+
+-- CLOSE BUTTON
+local Close = Instance.new("TextButton", Menu)
+Close.Size = UDim2.new(0, 25, 0, 25)
+Close.Position = UDim2.new(1, -30, 0, 10)
+Close.Text = "X"
+Close.TextColor3 = Color3.new(1,1,1)
+Close.BackgroundColor3 = Color3.new(0.6, 0, 0)
+Instance.new("UICorner", Close)
+Close.MouseButton1Click:Connect(function()
+    Menu.Visible = false
+    OpenBtn.Visible = true
+end)
+
+-- [ CORE PERFORMANCE LOOPS ]
+RunService.Stepped:Connect(function()
+    pcall(function()
+        local char = Player.Character
+        if _G.InfJ and UIS:IsKeyDown(Enum.KeyCode.Space) then char.HumanoidRootPart.Velocity = Vector3.new(0, 50, 0) end
+        if _G.Hv then char.HumanoidRootPart.Velocity = Vector3.new(0, 2, 0) char.HumanoidRootPart.CFrame *= CFrame.new(0,0,-0.2) end
+        char.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+    end)
+end)
