@@ -1,0 +1,136 @@
+--[[
+    HORZEN HUB - STEAL A BRAINROTS (v5.0)
+    - FASTEST TP FARM (FLASH MODE)
+    - INSTANT GRAB & DEPOSIT
+]]
+
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+local Player = game:GetService("Players").LocalPlayer
+local RunService = game:GetService("RunService")
+local VIM = game:GetService("VirtualInputManager")
+
+local Settings = {
+    AutoFarmLeft = false,
+    AutoFarmRight = false,
+    FastGrab = true,
+    Discord = "https://discord.gg/Stph7N2QQv"
+}
+
+-- [ Accurate Positions for Flash TP ]
+local Positions = {
+    Home = Vector3.new(0, 3.5, 60), -- Your Base
+    LeftEnemy = Vector3.new(-38, 3.5, 0), -- Left Base
+    RightEnemy = Vector3.new(38, 3.5, 0) -- Right Base
+}
+
+-- [ Flash TP Function ]
+local function FlashTP(target)
+    if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+        Player.Character.HumanoidRootPart.CFrame = CFrame.new(target)
+    end
+end
+
+-- [ Instant Interaction (No Delay) ]
+task.spawn(function()
+    while task.wait() do
+        if Settings.FastGrab or Settings.AutoFarmLeft or Settings.AutoFarmRight then
+            pcall(function()
+                for _, prompt in ipairs(workspace:GetDescendants()) do
+                    if prompt:IsA("ProximityPrompt") and prompt.Enabled then
+                        local char = Player.Character
+                        if char and (char.HumanoidRootPart.Position - prompt.Parent.WorldPosition).Magnitude < 25 then
+                            fireproximityprompt(prompt)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- [ GOD MODE FARM LOOP ]
+task.spawn(function()
+    while task.wait(0.1) do -- Fast Loop for Flash TP
+        if Settings.AutoFarmLeft then
+            local isStealing = Player:GetAttribute("Stealing")
+            if not isStealing then
+                FlashTP(Positions.LeftEnemy)
+            else
+                FlashTP(Positions.Home)
+            end
+        elseif Settings.AutoFarmRight then
+            local isStealing = Player:GetAttribute("Stealing")
+            if not isStealing then
+                FlashTP(Positions.RightEnemy)
+            else
+                FlashTP(Positions.Home)
+            end
+        end
+    end
+end)
+
+-- [ HORZEN HUB GUI ]
+local sg = Instance.new("ScreenGui", Player.PlayerGui)
+sg.Name = "HorzenHub"
+
+local Main = Instance.new("Frame", sg)
+Main.Size = UDim2.new(0, 230, 0, 300)
+Main.Position = UDim2.new(0.5, -115, 0.5, -150)
+Main.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Draggable = true
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 10)
+
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.Text = "HORZEN HUB V5"
+Title.TextColor3 = Color3.fromRGB(0, 255, 150)
+Title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Title.Font = Enum.Font.GothamBold
+Instance.new("UICorner", Title)
+
+local function CreateBtn(name, y, callback)
+    local btn = Instance.new("TextButton", Main)
+    btn.Size = UDim2.new(0.9, 0, 0, 40)
+    btn.Position = UDim2.new(0.05, 0, 0, y)
+    btn.Text = name .. ": OFF"
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.GothamBold
+    Instance.new("UICorner", btn)
+
+    local state = false
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        btn.Text = name .. (state and ": ON" or ": OFF")
+        btn.BackgroundColor3 = state and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(30, 30, 30)
+        callback(state)
+    end)
+end
+
+-- [ UI Elements ]
+CreateBtn("FLASH FARM LEFT", 60, function(v) Settings.AutoFarmLeft = v end)
+CreateBtn("FLASH FARM RIGHT", 110, function(v) Settings.AutoFarmRight = v end)
+CreateBtn("INSTANT GRAB", 160, function(v) Settings.FastGrab = v end)
+
+local DropBtn = Instance.new("TextButton", Main)
+DropBtn.Size = UDim2.new(0.9, 0, 0, 35)
+DropBtn.Position = UDim2.new(0.05, 0, 0, 210)
+DropBtn.Text = "DROP (G)"
+DropBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+DropBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", DropBtn)
+DropBtn.MouseButton1Click:Connect(function()
+    VIM:SendKeyEvent(true, Enum.KeyCode.G, false, game)
+end)
+
+local Disc = Instance.new("TextButton", Main)
+Disc.Size = UDim2.new(0.9, 0, 0, 30)
+Disc.Position = UDim2.new(0.05, 0, 0, 260)
+Disc.Text = "Copy Discord"
+Disc.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
+Disc.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", Disc)
+Disc.MouseButton1Click:Connect(function() setclipboard(Settings.Discord) end)
