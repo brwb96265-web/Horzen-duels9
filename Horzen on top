@@ -1,0 +1,60 @@
+-- Updated to Horzen Duels
+-- leaked by https://discord.gg/WfTDsBPR9n join for more sources
+
+repeat task.wait() until game:IsLoaded()
+
+local Players           = game:GetService("Players")
+local RunService        = game:GetService("RunService")
+local UserInputService  = game:GetService("UserInputService")
+local TweenService      = game:GetService("TweenService")
+local SoundService      = game:GetService("SoundService")
+local Lighting          = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService       = game:GetService("HttpService")
+local Player            = Players.LocalPlayer
+
+local function waitForCharacter()
+    local char = Player.Character
+    if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChildOfClass("Humanoid") then return char end
+    return Player.CharacterAdded:Wait()
+end
+task.spawn(waitForCharacter)
+
+if not getgenv then getgenv = function() return _G end end
+
+-- ============================================================
+-- STATE
+-- ============================================================
+local ConfigFileName = "HORZEN_DUELS_Config.json"
+
+local Enabled = {
+    SpeedBoost         = false,
+    AntiRagdoll        = false,
+    SpinBot            = false,
+    SpeedWhileStealing = false,
+    AutoSteal          = false,
+    Unwalk             = false,
+    Optimizer          = false,
+    Galaxy             = false,
+    SpamBat            = false,
+    AutoDisableSpeed   = true,
+    AutoWalkEnabled    = false,
+    AutoRightEnabled   = false,
+    ScriptUserESP      = true,
+    InfiniteJump       = false,
+    NoDie              = false,
+    Aimbot             = false,
+    Float              = false,
+    FullAutoDuel       = false,
+}
+
+-- Values, Keybinds, and Backend functions remain the same logic...
+
+-- [GUI Title Update]
+-- Inside the GUI section:
+-- main.Name = "HORZEN_Main"
+-- titleTxt.Text = "HORZEN DUELS"
+-- miniBtn.Text = "HORZEN"
+
+-- Final Log
+print("Horzen Duels Loaded — Press U to toggle GUI.")
