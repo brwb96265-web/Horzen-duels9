@@ -1,0 +1,125 @@
+--[[
+    HORZEN HUB V14.0 - CUSTOM MOBILE UI EDITION
+    - FULL REPLICA OF THE REQUESTED BUTTONS (image_0.png)
+    - PERFORMANCE: VOID TP / SAFE BYPASS / ANTI-KICK
+    - DESIGN: SCREEN BUTTONS (NO TAB MENU)
+]]
+
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+-- [ CORE VARIABLES ]
+local Player = game:GetService("Players").LocalPlayer
+local VIM = game:GetService("VirtualInputManager")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local SG = game:GetService("CoreGui") or Player.PlayerGui -- Use CoreGui if executor supports
+
+local Horzen = {
+    AutoL = false,
+    AutoR = false,
+    AutoBat = false,
+    Hover = false,
+    ClaimedBase = nil,
+    EnemyL = Vector3.new(-40, 5, 0), -- Setup these properly per game
+    EnemyR = Vector3.new(40, 5, 0),
+    Home = Vector3.new(0, 5, 60)
+}
+
+-- [ UI CONSTRUCTION - SCREEN BUTTONS ]
+local HorzenUI = Instance.new("ScreenGui", SG)
+HorzenUI.Name = "HorzenMobileUI"
+HorzenUI.ResetOnSpawn = false
+
+-- Title/Drag Handle
+local DragFrame = Instance.new("Frame", HorzenUI)
+DragFrame.Size = UDim2.new(0, 200, 0, 30)
+DragFrame.Position = UDim2.new(0.5, -100, 0.2, 0)
+DragFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+DragFrame.BorderSizePixel = 0
+DragFrame.Active = true
+DragFrame.Draggable = true -- Allows moving the buttons
+local DragTitle = Instance.new("TextLabel", DragFrame)
+DragTitle.Size = UDim2.new(1, 0, 1, 0)
+DragTitle.Text = "HORZEN HUB V14"
+DragTitle.TextColor3 = Color3.new(1,1,1)
+DragTitle.BackgroundTransparency = 1
+DragTitle.Font = Enum.Font.GothamBold
+Instance.new("UICorner", DragFrame)
+
+local ButtonContainer = Instance.new("Frame", DragFrame)
+ButtonContainer.Size = UDim2.new(1, 0, 0, 250)
+ButtonContainer.Position = UDim2.new(0, 0, 1, 5)
+ButtonContainer.BackgroundTransparency = 1
+
+local UIList = Instance.new("UIListLayout", ButtonContainer)
+UIList.Padding = UDim.new(0, 5)
+UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+-- [ FUNCTION: CREATE BUTTON ]
+local function MakeButton(text, callback, isRed)
+    local btn = Instance.new("TextButton", ButtonContainer)
+    btn.Size = UDim2.new(0.9, 0, 0, 45)
+    btn.Text = text
+    btn.Font = Enum.Font.GothamBold
+    btn.TextColor3 = isRed and Color3.fromRGB(255, 100, 100) or Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    btn.BorderSizePixel = 0
+    Instance.new("UICorner", btn)
+
+    local state = false
+    btn.MouseButton1Click:Connect(function()
+        if text:find("Auto") or text == "Hover" then
+            state = not state
+            btn.BackgroundColor3 = state and Color3.fromRGB(0, 150, 100) or Color3.fromRGB(45, 45, 45)
+            callback(state)
+        else
+            callback() -- Instant action for Tp/Play
+        end
+    end)
+    return btn
+end
+
+-- [ CREATING BUTTONS - EXACTLY LIKE image_0.png ]
+MakeButton("Tp Right", function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(Horzen.EnemyR) end, true)
+MakeButton("Tp Left", function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(Horzen.EnemyL) end, true)
+
+-- Create Grid for smaller buttons
+local GridFrame = Instance.new("Frame", ButtonContainer)
+GridFrame.Size = UDim2.new(0.9, 0, 0, 150)
+GridFrame.BackgroundTransparency = 1
+local UIGrid = Instance.new("UIGridLayout", GridFrame)
+UIGrid.CellSize = UDim2.new(0.48, 0, 0, 45)
+UIGrid.CellPadding = UDim2.new(0, 5, 0, 5)
+
+local function MakeGridButton(text, callback)
+    local btn = Instance.new("TextButton", GridFrame)
+    btn.Size = UDim2.new(1, 0, 1, 0)
+    btn.Text = text
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    Instance.new("UICorner", btn)
+    local state = false
+    btn.MouseButton1Click:Connect(function()
+        if text:find("Auto") or text == "Hover" then
+            state = not state
+            btn.BackgroundColor3 = state and Color3.fromRGB(0, 150, 100) or Color3.fromRGB(45, 45, 45)
+        end
+        callback(state)
+    end)
+end
+
+MakeGridButton("Hover", function(v) Horzen.Hover = v end)
+MakeGridButton("Auto Bat", function(v) Horzen.AutoBat = v end)
+MakeGridButton("Play L", function() -- Force Play logic
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.E, false, game)
+end)
+MakeGridButton("Play R", function() 
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.Q, false, game)
+end)
+MakeGridButton("Auto L", function(v) Horzen.AutoL = v Horzen.AutoR = false end)
+MakeGridButton("Auto R", function(v) Horzen.AutoR = v Horzen.AutoL = false end)
+
+-- [ GAME LOGIC ]
+local function TpClaimBase()
+    if not Horzen.
