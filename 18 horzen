@@ -1,0 +1,174 @@
+--[[
+    HORZEN HUB V29 - ANIMATED CLASSIC EDITION
+    - UI: CLASSIC DEEP BLACK (SHARP EDGES)
+    - BANG: FAST ANIMATION LOOP (R6/R15)
+    - LANGUAGE: ENGLISH CODE ONLY
+]]
+
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+local Player = game:GetService("Players").LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+
+-- [ Configuration States ]
+_G.BangActive = false
+_G.FlingActive = false
+_G.FlyActive = false
+_G.Noclip = false
+
+-- [ UI CONSTRUCTION - DEEP BLACK ]
+local Main = Instance.new("ScreenGui", CoreGui)
+Main.Name = "HorzenClassicV29"
+
+-- HZ FLOATING LOGO
+local Logo = Instance.new("ImageButton", Main)
+Logo.Size = UDim2.new(0, 60, 0, 60)
+Logo.Position = UDim2.new(0.02, 0, 0.45, 0)
+Logo.Image = "rbxassetid://16120485974" 
+Logo.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Logo.BorderSizePixel = 1
+Logo.BorderColor3 = Color3.fromRGB(60, 60, 60)
+Logo.Draggable = true
+
+-- MENU BOX
+local Menu = Instance.new("Frame", Main)
+Menu.Size = UDim2.new(0, 220, 0, 460)
+Menu.Position = UDim2.new(0.5, -110, 0.5, -230)
+Menu.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+Menu.BorderSizePixel = 2
+Menu.BorderColor3 = Color3.fromRGB(45, 45, 45)
+Menu.Visible = false
+Menu.Active = true
+Menu.Draggable = true
+
+local Header = Instance.new("TextLabel", Menu)
+Header.Size = UDim2.new(1, 0, 0, 38)
+Header.Text = "HORZEN HUB - CLASSIC"
+Header.TextColor3 = Color3.new(1, 1, 1)
+Header.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+Header.Font = Enum.Font.SourceSansBold
+Header.TextSize = 16
+
+local TargetBox = Instance.new("TextBox", Menu)
+TargetBox.Size = UDim2.new(0.9, 0, 0, 32)
+TargetBox.Position = UDim2.new(0.05, 0, 0, 48)
+TargetBox.PlaceholderText = "Target Player Name..."
+TargetBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+TargetBox.TextColor3 = Color3.new(1, 1, 1)
+TargetBox.BorderSizePixel = 1
+
+local Container = Instance.new("ScrollingFrame", Menu)
+Container.Size = UDim2.new(1, -10, 1, -95)
+Container.Position = UDim2.new(0, 5, 0, 90)
+Container.BackgroundTransparency = 1
+Container.ScrollBarThickness = 1
+Instance.new("UIListLayout", Container).Padding = UDim.new(0, 5)
+
+Logo.MouseButton1Click:Connect(function() Menu.Visible = not Menu.Visible end)
+
+-- [ CORE LOGIC ]
+local function GetTarget()
+    local name = TargetBox.Text:lower()
+    if name == "" then return nil end
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p ~= Player and (p.Name:lower():sub(1, #name) == name or p.DisplayName:lower():sub(1, #name) == name) then
+            return p
+        end
+    end
+    return nil
+end
+
+local function CreateButton(name, color, callback)
+    local btn = Instance.new("TextButton", Container)
+    btn.Size = UDim2.new(1, 0, 0, 34)
+    btn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    btn.Text = name
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.SourceSans
+    btn.BorderSizePixel = 1
+    btn.BorderColor3 = Color3.fromRGB(50, 50, 50)
+    
+    local active = false
+    btn.MouseButton1Click:Connect(function()
+        active = not active
+        btn.BackgroundColor3 = active and color or Color3.fromRGB(28, 28, 28)
+        callback(active)
+    end)
+end
+
+-- [ FEATURES ]
+
+-- 1. Animated Bang
+CreateButton("Animated Bang Target", Color3.fromRGB(150, 0, 150), function(v)
+    _G.BangActive = v
+    local target = GetTarget()
+    if v and target and target.Character then
+        local anim = Instance.new("Animation")
+        anim.AnimationId = "rbxassetid://148840371" 
+        local load = Player.Character.Humanoid:LoadAnimation(anim)
+        load:Play()
+        load:AdjustSpeed(4)
+        
+        task.spawn(function()
+            while _G.BangActive and target.Character and target.Character:FindFirstChild("HumanoidRootPart") do
+                Player.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 1.1)
+                task.wait()
+            end
+            load:Stop()
+        end)
+    end
+end)
+
+-- 2. Fling Player
+CreateButton("Fling/Kill Player", Color3.fromRGB(180, 0, 0), function(v)
+    _G.FlingActive = v
+    local target = GetTarget()
+    if v and target then
+        task.spawn(function()
+            local root = Player.Character.HumanoidRootPart
+            while _G.FlingActive do
+                root.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(root.Orientation.Y + 90), 0)
+                root.Velocity = Vector3.new(500000, 500000, 500000)
+                task.wait()
+            end
+            root.Velocity = Vector3.new(0, 0, 0)
+        end)
+    end
+end)
+
+-- 3. High Speed Fly
+CreateButton("Fly (High Speed)", Color3.fromRGB(0, 120, 120), function(v)
+    _G.FlyActive = v
+    local bv = Instance.new("BodyVelocity", Player.Character.HumanoidRootPart)
+    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    task.spawn(function()
+        while _G.FlyActive do
+            bv.Velocity = workspace.CurrentCamera.CFrame.LookVector * 100
+            task.wait()
+        end
+        bv:Destroy()
+    end)
+end)
+
+-- 4. Invisibility
+CreateButton("Invisible Mode", Color3.fromRGB(60, 60, 60), function(v)
+    for _, part in pairs(Player.Character:GetDescendants()) do
+        if part:IsA("BasePart") or part:IsA("Decal") then
+            part.Transparency = v and 1 or 0
+        end
+    end
+end)
+
+-- 5. Noclip
+CreateButton("Noclip Walls", Color3.fromRGB(120, 120, 0), function(v)
+    _G.Noclip = v
+    RunService.Stepped:Connect(function()
+        if _G.Noclip and Player.Character then
+            for _, p in pairs(Player.Character:GetDescendants()) do
+                if p:IsA("BasePart") then p.CanCollide = false end
+            end
+        end
+    end)
+end)
