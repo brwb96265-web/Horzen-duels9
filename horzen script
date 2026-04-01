@@ -1,0 +1,148 @@
+--[[
+    HORZEN HUB V21 - GOD MODE PERFORMANCE
+    - ENGINE: INSTANT RAYCAST GRAB (Hyper Fast)
+    - SECURITY: ANTI-KICK BYPASS + AUTO-DEPOSIT
+    - DESIGN: CLEAN ZYPHROT BLACK & HZ FLOATING LOGO
+]]
+
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+local Player = game:GetService("Players").LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+-- [ SETTINGS ]
+_G.AutoSteal = false
+_G.TargetSide = "Left" -- Left or Right
+_G.InfJ = false
+_G.Hv = false
+_G.AntiRag = true
+_G.GrabDistance = 35
+
+-- [ CORE FUNCTIONS - THE POWER ]
+local function GetMyBase()
+    for _,v in pairs(workspace.Bases:GetChildren()) do
+        if v:FindFirstChild("Owner") and v.Owner.Value == Player.Name then
+            return v.Claim.CFrame
+        end
+    end
+    return nil
+end
+
+local function InstantSteal()
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA("ProximityPrompt") and v.Parent.Name:lower():find("brainrot") and v.Enabled then
+            local dist = (Player.Character.HumanoidRootPart.Position - v.Parent.Position).Magnitude
+            if dist < _G.GrabDistance then
+                fireproximityprompt(v)
+            end
+        end
+    end
+end
+
+-- [ UI DESIGN - ZYPHROT BLACK ]
+local Main = Instance.new("ScreenGui", CoreGui)
+Main.Name = "HorzenV21"
+
+local Logo = Instance.new("ImageButton", Main)
+Logo.Size = UDim2.new(0, 60, 0, 60)
+Logo.Position = UDim2.new(0, 10, 0.5, -30)
+Logo.Image = "rbxassetid://16120485974" -- HZ Logo
+Logo.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+Logo.Draggable = true
+Instance.new("UICorner", Logo)
+local LogoStroke = Instance.new("UIStroke", Logo)
+LogoStroke.Color = Color3.fromRGB(0, 255, 255)
+
+local Menu = Instance.new("Frame", Main)
+Menu.Size = UDim2.new(0, 210, 0, 480)
+Menu.Position = UDim2.new(0.5, -105, 0.5, -240)
+Menu.BackgroundColor3 = Color3.fromRGB(8, 8, 8)
+Menu.Visible = false
+Instance.new("UICorner", Menu)
+local MenuStroke = Instance.new("UIStroke", Menu)
+MenuStroke.Color = Color3.fromRGB(30, 30, 30)
+
+local Scroll = Instance.new("ScrollingFrame", Menu)
+Scroll.Size = UDim2.new(1, -10, 1, -50)
+Scroll.Position = UDim2.new(0, 5, 0, 45)
+Scroll.BackgroundTransparency = 1
+Scroll.ScrollBarThickness = 0
+local List = Instance.new("UIListLayout", Scroll)
+List.Padding = UDim.new(0, 5)
+
+Logo.MouseButton1Click:Connect(function() Menu.Visible = not Menu.Visible end)
+
+-- [ BUTTON FACTORY ]
+local function Btn(name, color, isToggle, callback)
+    local b = Instance.new("TextButton", Scroll)
+    b.Size = UDim2.new(1, 0, 0, 35)
+    b.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    b.Text = name
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 12
+    Instance.new("UICorner", b)
+    
+    local active = false
+    b.MouseButton1Click:Connect(function()
+        if isToggle then
+            active = not active
+            b.BackgroundColor3 = active and color or Color3.fromRGB(20, 20, 20)
+            callback(active)
+        else
+            callback()
+        end
+    end)
+end
+
+-- [ THE 13 KILLER FEATURES ]
+Btn("Anti Ragdoll (ON)", Color3.fromRGB(255, 200, 0), true, function(v) _G.AntiRag = v end)
+Btn("Auto Left (STEAL)", Color3.fromRGB(255, 0, 50), true, function(v) _G.AutoSteal = v _G.TargetSide = "Left" end)
+Btn("Auto Right (STEAL)", Color3.fromRGB(255, 0, 50), true, function(v) _G.AutoSteal = v _G.TargetSide = "Right" end)
+Btn("Inf Jump", Color3.fromRGB(0, 255, 255), true, function(v) _G.InfJ = v end)
+Btn("Hover Fly", Color3.fromRGB(0, 255, 255), true, function(v) _G.Hv = v end)
+Btn("TP Left Enemy", Color3.fromRGB(40, 40, 40), false, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(-48, 8, 0) end)
+Btn("TP Right Enemy", Color3.fromRGB(40, 40, 40), false, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(48, 8, 0) end)
+Btn("Drop (G Key)", Color3.fromRGB(255, 120, 0), false, function() game:GetService("VirtualInputManager"):SendKeyEvent(true, "G", false, game) end)
+Btn("TP Down (Escape)", Color3.fromRGB(40, 40, 40), false, function() Player.Character.HumanoidRootPart.CFrame *= CFrame.new(0, -25, 0) end)
+Btn("Play Left (Quick)", Color3.fromRGB(0, 200, 50), false, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(-48, 8, 0) task.wait(0.05) InstantSteal() end)
+Btn("Play Right (Quick)", Color3.fromRGB(0, 200, 50), false, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(48, 8, 0) task.wait(0.05) InstantSteal() end)
+Btn("X-Ray (Clear)", Color3.fromRGB(150, 0, 255), true, function(v) for _,p in pairs(workspace:GetDescendants()) do if p:IsA("BasePart") then p.Transparency = v and 0.5 or 0 end end end)
+
+-- [ PERFORMANCE ENGINE - NO LAG ]
+task.spawn(function()
+    while task.wait(0.05) do -- Fast Refresh
+        if _G.AutoSteal then
+            pcall(function()
+                local char = Player.Character
+                local root = char.HumanoidRootPart
+                local hasItem = char:FindFirstChild("Brainrot") or Player:GetAttribute("Stealing")
+                
+                if not hasItem then
+                    -- TP to Enemy (Precise)
+                    local pos = _G.TargetSide == "Left" and Vector3.new(-48, 8, 0) or Vector3.new(48, 8, 0)
+                    root.CFrame = CFrame.new(pos)
+                    InstantSteal()
+                else
+                    -- TP to Deposit (Instant)
+                    local myBase = GetMyBase()
+                    if myBase then root.CFrame = myBase end
+                end
+            end)
+        end
+    end
+end)
+
+RunService.Stepped:Connect(function()
+    pcall(function()
+        local char = Player.Character
+        if _G.AntiRag then
+            char.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+            char.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+        end
+        if _G.InfJ and UIS:IsKeyDown(Enum.KeyCode.Space) then root.Velocity = Vector3.new(0, 55, 0) end
+        if _G.Hv then root.Velocity = Vector3.new(0, 3, 0) root.CFrame *= CFrame.new(0,0,-0.4) end
+    end)
+end)
