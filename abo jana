@@ -1,0 +1,155 @@
+--[[
+    HORZEN DUELS - ULTIMATE STEALER (v2.0)
+    - Discord: https://discord.gg/Stph7N2QQv
+    - Features: Auto Steal, Auto Grab, Auto Farm, Drop, Speed, Inf Jump, TPs
+]]
+
+repeat task.wait() until game:IsLoaded()
+
+local Player = game:GetService("Players").LocalPlayer
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local StarterGui = game:GetService("StarterGui")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+-- [ Configuration ]
+local HorzenSettings = {
+    SpeedEnabled = false,
+    AutoGrabEnabled = false,
+    InfJumpEnabled = false,
+    AutoLeftEnabled = false,
+    AutoRightEnabled = false,
+    TPLeftEnabled = false,
+    TPRightEnabled = false,
+    TPDownEnabled = false,
+    NormalSpeed = 32,
+    CarrySpeed = 26,
+    Discord = "https://discord.gg/Stph7N2QQv"
+}
+
+-- [ Positions ]
+local MyPlotPos = Vector3.new(0, 3, 50) 
+local LeftEnemyPos = Vector3.new(-35, 3, 0)
+local RightEnemyPos = Vector3.new(35, 3, 0)
+
+-- [ Drop Function ]
+local function DropBrainrot()
+    if Player:GetAttribute("Stealing") then
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.G, false, game)
+        task.wait(0.05)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.G, false, game)
+    end
+end
+
+-- [ Auto Steal / Grab Logic ]
+task.spawn(function()
+    while task.wait(0.1) do
+        if HorzenSettings.AutoGrabEnabled or HorzenSettings.AutoLeftEnabled or HorzenSettings.AutoRightEnabled then
+            pcall(function()
+                for _, v in ipairs(workspace:GetDescendants()) do
+                    if v:IsA("ProximityPrompt") and v.Enabled then
+                        local char = Player.Character
+                        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                        if hrp then
+                            local mag = (hrp.Position - v.Parent.WorldPosition).Magnitude
+                            if mag < 18 then 
+                                fireproximityprompt(v) 
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- [ Auto Farm Movement ]
+task.spawn(function()
+    while task.wait(0.5) do
+        if HorzenSettings.AutoLeftEnabled or HorzenSettings.AutoRightEnabled then
+            local char = Player.Character
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                local isStealing = Player:GetAttribute("Stealing")
+                local target = HorzenSettings.AutoLeftEnabled and LeftEnemyPos or RightEnemyPos
+                hum:MoveTo(isStealing and MyPlotPos or target)
+            end
+        end
+    end
+end)
+
+-- [ Speed Controller ]
+RunService.Heartbeat:Connect(function()
+    local char = Player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if hrp and hum and hum.MoveDirection.Magnitude > 0 then
+        if HorzenSettings.SpeedEnabled or HorzenSettings.AutoLeftEnabled or HorzenSettings.AutoRightEnabled then
+            local s = Player:GetAttribute("Stealing") and HorzenSettings.CarrySpeed or HorzenSettings.NormalSpeed
+            hrp.AssemblyLinearVelocity = Vector3.new(hum.MoveDirection.X * s, hrp.AssemblyLinearVelocity.Y, hum.MoveDirection.Z * s)
+        end
+    end
+end)
+
+-- [ Infinite Jump ]
+UserInputService.JumpRequest:Connect(function()
+    if HorzenSettings.InfJumpEnabled then
+        local hum = Player.Character and Player.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+    end
+end)
+
+-- [ GUI UI Creation ]
+local sg = Instance.new("ScreenGui", Player.PlayerGui)
+sg.Name = "HorzenV2"
+
+local Main = Instance.new("Frame", sg)
+Main.Size = UDim2.new(0, 250, 0, 580)
+Main.Position = UDim2.new(0.5, -125, 0.5, -290)
+Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Main.Draggable = true
+Main.Active = true
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 8)
+
+local function AddButton(text, y, callback, isAction)
+    local btn = Instance.new("TextButton", Main)
+    btn.Size = UDim2.new(0.9, 0, 0, 35)
+    btn.Position = UDim2.new(0.05, 0, 0, y)
+    btn.Text = isAction and text or (text .. ": OFF")
+    btn.BackgroundColor3 = isAction and Color3.fromRGB(40, 60, 200) or Color3.fromRGB(30, 30, 30)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 12
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 5)
+
+    local state = false
+    btn.MouseButton1Click:Connect(function()
+        if isAction then callback() else
+            state = not state
+            btn.Text = text .. (state and ": ON" or ": OFF")
+            btn.BackgroundColor3 = state and Color3.fromRGB(30, 180, 80) or Color3.fromRGB(30, 30, 30)
+            callback(state)
+        end
+    end)
+end
+
+-- [ UI Elements ]
+local Title = Instance.new("TextLabel", Main)
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.Text = "HORZEN STEALER V2.0"
+Title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Title.TextColor3 = Color3.new(1,1,1)
+Title.Font = Enum.Font.GothamBold
+
+AddButton("Auto Grab Items", 60, function(v) HorzenSettings.AutoGrabEnabled = v end)
+AddButton("Drop Item (G)", 105, function() DropBrainrot() end, true)
+AddButton("Auto Farm Left", 150, function(v) HorzenSettings.AutoLeftEnabled = v end)
+AddButton("Auto Farm Right", 195, function(v) HorzenSettings.AutoRightEnabled = v end)
+AddButton("Speed Hack", 240, function(v) HorzenSettings.SpeedEnabled = v end)
+AddButton("Infinite Jump", 285, function(v) HorzenSettings.InfJumpEnabled = v end)
+AddButton("Teleport Left", 330, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(LeftEnemyPos) end, true)
+AddButton("Teleport Right", 375, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(RightEnemyPos) end, true)
+AddButton("Teleport Home", 420, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(MyPlotPos) end, true)
+AddButton("Copy Discord Link", 480, function() setclipboard(HorzenSettings.Discord) end, true)
+
+print("Horzen Stealer v2.0 - English Clean Version Loaded.")
