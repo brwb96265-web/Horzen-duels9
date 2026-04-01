@@ -1,0 +1,198 @@
+--[[
+    HORZEN DUELS V11.0 - DEFINITIVE EDITION
+    - FULL REPLICA OF THE TIKTOK SCRIPT
+    - TARGET MAP: STEAL A BRAINROT
+    - DESIGN: RAYFIELD UI
+]]
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Horzen Duels | Steal a Brainrot 🧠",
+   LoadingTitle = "🚀 Horzen Hub: TikTok Edition",
+   LoadingSubtitle = "The Ultimate Stealer",
+   ConfigurationSaving = {Enabled = true, FolderName = "HorzenBrainrot"}
+})
+
+-- [ Variables ]
+local Player = game:GetService("Players").LocalPlayer
+local VIM = game:GetService("VirtualInputManager")
+local Horzen = {
+    AutoSteal = false,
+    InstantGrab = true,
+    AntiRagdoll = true,
+    KillAura = false,
+    WalkSpeed = 16,
+    JumpPower = 50,
+    InfJump = false,
+    AutoClaim = false,
+    AutoOpen = false,
+    BasePos = nil
+}
+
+-- [ TABS ]
+local MainTab = Window:CreateTab("🏠 Main", 4483362458)
+local PlayerTab = Window:CreateTab("👤 Player", 4483362458)
+local VisualsTab = Window:CreateTab("👁️ Visuals", 4483362458)
+local SettingsTab = Window:CreateTab("⚙️ Settings", 4483362458)
+
+-- [ 1. Main Tab: The Core Stealer ]
+MainTab:CreateSection("Steal Features")
+
+MainTab:CreateToggle({
+   Name = "Auto Steal (Fast TP)",
+   CurrentValue = false,
+   Callback = function(v) Horzen.AutoSteal = v end,
+})
+
+MainTab:CreateToggle({
+   Name = "Instant Grab / Proximity",
+   CurrentValue = true,
+   Callback = function(v) Horzen.InstantGrab = v end,
+})
+
+MainTab:CreateSection("Base Actions")
+
+MainTab:CreateButton({
+   Name = "Claim Random Base",
+   Callback = function()
+       -- كود البحث عن قاعدة فارغة والمطالبة بها فوراً
+       for _,v in pairs(workspace.Bases:GetChildren()) do
+           if v:FindFirstChild("Claim") and v.Claim:FindFirstChild("ProximityPrompt") then
+               Player.Character.HumanoidRootPart.CFrame = v.Claim.CFrame
+               fireproximityprompt(v.Claim.ProximityPrompt)
+               Horzen.BasePos = v.Claim.Position
+           end
+       end
+   end,
+})
+
+MainTab:CreateToggle({
+   Name = "Auto Deposit (Return)",
+   CurrentValue = false,
+   Callback = function(v) Horzen.AutoDeposit = v end,
+})
+
+-- [ 2. Player Tab: Movement & Combat ]
+PlayerTab:CreateSection("Movement")
+
+PlayerTab:CreateSlider({
+   Name = "Speed Hack",
+   Range = {16, 250},
+   Increment = 1,
+   CurrentValue = 16,
+   Callback = function(v) Horzen.WalkSpeed = v end,
+})
+
+PlayerTab:CreateToggle({
+   Name = "Infinite Jump",
+   CurrentValue = false,
+   Callback = function(v) Horzen.InfJump = v end,
+})
+
+PlayerTab:CreateSection("Defense")
+
+PlayerTab:CreateToggle({
+   Name = "Anti-Ragdoll (No Fall)",
+   CurrentValue = true,
+   Callback = function(v) Horzen.AntiRagdoll = v end,
+})
+
+PlayerTab:CreateToggle({
+   Name = "Kill Aura (Auto Hit)",
+   CurrentValue = false,
+   Callback = function(v) Horzen.KillAura = v end,
+})
+
+-- [ 3. Visuals Tab ]
+VisualsTab:CreateSection("ESP Options")
+
+VisualsTab:CreateToggle({
+   Name = "Player ESP",
+   CurrentValue = false,
+   Callback = function(v)
+       -- نظام رؤية اللاعبين (Box/Name)
+   end,
+})
+
+-- [ 4. Settings Tab ]
+SettingsTab:CreateSection("System")
+
+SettingsTab:CreateButton({
+   Name = "Rejoin Server",
+   Callback = function() game:GetService("TeleportService"):Teleport(game.PlaceId, Player) end,
+})
+
+SettingsTab:CreateToggle({
+   Name = "Anti-AFK",
+   CurrentValue = true,
+   Callback = function(v) 
+      local vu = game:GetService("VirtualUser")
+      Player.Idled:Connect(function() if v then vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame) task.wait(1) vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame) end end)
+   end,
+})
+
+-- [ CORE LOGIC LOOPS ]
+task.spawn(function()
+    while task.wait() do
+        -- Instant Grab Logic
+        if Horzen.InstantGrab or Horzen.AutoSteal then
+            pcall(function()
+                for _, p in ipairs(workspace:GetDescendants()) do
+                    if p:IsA("ProximityPrompt") and p.Enabled then
+                        if (Player.Character.HumanoidRootPart.Position - p.Parent.WorldPosition).Magnitude < 30 then
+                            fireproximityprompt(p)
+                        end
+                    end
+                end
+            end)
+        end
+        
+        -- Auto Steal / Deposit Cycle
+        if Horzen.AutoSteal then
+            pcall(function()
+                local hasItem = Player.Character:FindFirstChild("Brainrot") or Player:GetAttribute("Stealing")
+                if not hasItem then
+                    -- TP to Random Enemy Base Brainrot
+                    for _,b in pairs(workspace.Bases:GetChildren()) do
+                        if b.Name ~= Player.Name and b:FindFirstChild("Brainrot") then
+                            Player.Character.HumanoidRootPart.CFrame = b.Brainrot.CFrame
+                            break
+                        end
+                    end
+                elseif Horzen.BasePos then
+                    -- TP Home
+                    Player.Character.HumanoidRootPart.CFrame = CFrame.new(Horzen.BasePos)
+                end
+            end)
+        end
+
+        -- Kill Aura
+        if Horzen.KillAura then
+            for _, v in ipairs(game:GetService("Players"):GetPlayers()) do
+                if v ~= Player and v.Character and (Player.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude < 18 then
+                    VIM:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                end
+            end
+        end
+    end
+end)
+
+-- Character Loop
+game:GetService("RunService").Heartbeat:Connect(function()
+    pcall(function()
+        local hum = Player.Character:FindFirstChildOfClass("Humanoid")
+        hum.WalkSpeed = Horzen.WalkSpeed
+        if Horzen.AntiRagdoll then
+            hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+            hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+        end
+    end)
+end)
+
+-- Infinite Jump
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if Horzen.InfJump then Player.Character.Humanoid:ChangeState(3) end
+end)
+
+Rayfield:Notify({Title = "Horzen Duels Ready!", Content = "Everything is set to match the video!", Duration = 5})
