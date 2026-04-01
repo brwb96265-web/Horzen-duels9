@@ -1,0 +1,182 @@
+--[[
+    HORZEN HUB V19 - THE ANTI-RAGDOLL EDITION
+    - DESIGN: ULTRA NEON GLOW (Matches image_2.png)
+    - NEW FEATURE: ANTI-RAGDOLL (Button 13)
+    - PERFORMANCE: VOID TP + INSTANT GRAB
+]]
+
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+local Player = game:GetService("Players").LocalPlayer
+local CoreGui = game:GetService("CoreGui") or Player.PlayerGui
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local VIM = game:GetService("VirtualInputManager")
+
+-- [ Configuration & States ]
+_G.AutoL = false
+_G.AutoR = false
+_G.InfJ = false
+_G.Hv = false
+_G.Grab = true
+_G.AntiRagdoll = true -- Enabled by default for better experience
+_G.Xray = false
+
+-- [ UI CONSTRUCTION ]
+local Main = Instance.new("ScreenGui", CoreGui)
+Main.Name = "HorzenV19"
+
+-- 1. HZ LOGO (THE TOGGLE)
+local OpenBtn = Instance.new("ImageButton", Main)
+OpenBtn.Size = UDim2.new(0, 75, 0, 75)
+OpenBtn.Position = UDim2.new(0.02, 0, 0.4, 0)
+OpenBtn.Image = "rbxassetid://16120485974" -- Your Logo
+OpenBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(0, 15)
+local LogoGlow = Instance.new("UIStroke", OpenBtn)
+LogoGlow.Color = Color3.fromRGB(0, 255, 255)
+LogoGlow.Thickness = 2
+
+-- 2. MAIN NEON MENU
+local Menu = Instance.new("Frame", Main)
+Menu.Size = UDim2.new(0, 220, 0, 480) -- Increased height for new button
+Menu.Position = UDim2.new(0.02, 0, 0.4, -240)
+Menu.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+Menu.BackgroundTransparency = 0.1
+Menu.Visible = false
+Menu.Active = true
+Menu.Draggable = true
+Instance.new("UICorner", Menu)
+local MenuGlow = Instance.new("UIStroke", Menu)
+MenuGlow.Color = Color3.fromRGB(0, 255, 255)
+MenuGlow.Thickness = 1.5
+
+local Title = Instance.new("TextLabel", Menu)
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.Text = "HORZEN HUB V19"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+Title.BackgroundTransparency = 1
+
+local Scroll = Instance.new("ScrollingFrame", Menu)
+Scroll.Size = UDim2.new(1, -10, 1, -65)
+Scroll.Position = UDim2.new(0, 5, 0, 55)
+Scroll.BackgroundTransparency = 1
+Scroll.ScrollBarThickness = 3
+Scroll.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 255)
+Scroll.CanvasSize = UDim2.new(0, 0, 2.0, 0)
+Instance.new("UIListLayout", Scroll).Padding = UDim.new(0, 8)
+
+-- [ TOGGLE LOGIC ]
+OpenBtn.MouseButton1Click:Connect(function() Menu.Visible = true OpenBtn.Visible = false end)
+local Close = Instance.new("TextButton", Menu)
+Close.Size = UDim2.new(0, 25, 0, 25); Close.Position = UDim2.new(1, -30, 0, 10); Close.Text = "X"
+Close.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+Instance.new("UICorner", Close)
+Close.MouseButton1Click:Connect(function() Menu.Visible = false OpenBtn.Visible = true end)
+
+-- [ BUTTON FACTORY ]
+local function Add(name, isToggle, color, callback)
+    local btnFrame = Instance.new("Frame", Scroll)
+    btnFrame.Size = UDim2.new(0.95, 0, 0, 38)
+    btnFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    Instance.new("UICorner", btnFrame)
+    local stroke = Instance.new("UIStroke", btnFrame)
+    stroke.Color = Color3.fromRGB(40, 40, 40)
+
+    local btn = Instance.new("TextButton", btnFrame)
+    btn.Size = UDim2.new(1, 0, 1, 0)
+    btn.Text = name
+    btn.BackgroundTransparency = 1
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 13
+
+    local active = (name == "Anti Ragdoll") and _G.AntiRagdoll or false
+    if active then 
+        btnFrame.BackgroundColor3 = color
+        stroke.Color = color
+    end
+
+    btn.MouseButton1Click:Connect(function()
+        if isToggle then
+            active = not active
+            btnFrame.BackgroundColor3 = active and color or Color3.fromRGB(20, 20, 20)
+            stroke.Color = active and color or Color3.fromRGB(40, 40, 40)
+            callback(active)
+        else
+            callback()
+        end
+    end)
+end
+
+-- [ FEATURES - 13 TOTAL ]
+local NeonCyan = Color3.fromRGB(0, 255, 255)
+local NeonRed = Color3.fromRGB(255, 50, 50)
+local NeonYellow = Color3.fromRGB(255, 200, 0)
+
+Add("Anti Ragdoll", true, NeonYellow, function(v) _G.AntiRagdoll = v end) -- The New Feature
+Add("Auto Grab", true, NeonCyan, function(v) _G.Grab = v end)
+Add("Safe Inf Jump", true, NeonCyan, function(v) _G.InfJ = v end)
+Add("Hover Fly", true, NeonCyan, function(v) _G.Hv = v end)
+Add("Auto Left (Void)", true, NeonRed, function(v) _G.AutoL = v _G.AutoR = false end)
+Add("Auto Right (Void)", true, NeonRed, function(v) _G.AutoR = v _G.AutoL = false end)
+Add("Tp Left Enemy", false, NeonRed, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(-45, 8, 0) end)
+Add("Tp Right Enemy", false, NeonRed, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(45, 8, 0) end)
+Add("Drop Brainrot", false, NeonCyan, function() VIM:SendKeyEvent(true, "G", false, game) end)
+Add("Tp Down", false, Color3.fromRGB(100, 100, 100), function() Player.Character.HumanoidRootPart.CFrame *= CFrame.new(0, -20, 0) end)
+Add("Play Left", false, NeonCyan, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(-45, 8, 0) task.wait(0.1) VIM:SendKeyEvent(true, "E", false, game) end)
+Add("Play Right", false, NeonCyan, function() Player.Character.HumanoidRootPart.CFrame = CFrame.new(45, 8, 0) task.wait(0.1) VIM:SendKeyEvent(true, "Q", false, game) end)
+Add("Xray Walls", true, Color3.fromRGB(150, 0, 255), function(v) 
+    for _,p in pairs(workspace:GetDescendants()) do if p:IsA("BasePart") then p.Transparency = v and 0.5 or 0 end end 
+end)
+
+-- [ THE ENGINE ]
+RunService.Stepped:Connect(function()
+    pcall(function()
+        local char = Player.Character
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        local root = char.HumanoidRootPart
+
+        -- 1. Anti Ragdoll Logic
+        if _G.AntiRagdoll then
+            hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+            hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+            if hum:GetState() == Enum.HumanoidStateType.Ragdoll or hum:GetState() == Enum.HumanoidStateType.FallingDown then
+                hum:ChangeState(Enum.HumanoidStateType.GettingUp)
+            end
+        end
+
+        -- 2. Movement Bypasses
+        if _G.InfJ and UIS:IsKeyDown(Enum.KeyCode.Space) then root.Velocity = Vector3.new(root.Velocity.X, 55, root.Velocity.Z) end
+        if _G.Hv then root.Velocity = Vector3.new(root.Velocity.X, 4, root.Velocity.Z) root.CFrame *= CFrame.new(0,0,-0.3) end
+    end)
+end)
+
+-- Auto Steal Loop
+task.spawn(function()
+    while task.wait(0.1) do
+        if _G.AutoL or _G.AutoR then
+            pcall(function()
+                local char = Player.Character
+                local hasItem = char:FindFirstChild("Brainrot") or Player:GetAttribute("Stealing")
+                if not hasItem then
+                    char.HumanoidRootPart.CFrame = _G.AutoL and CFrame.new(-45, 8, 0) or CFrame.new(45, 8, 0)
+                    if _G.Grab then 
+                        for _, p in pairs(workspace:GetDescendants()) do
+                            if p:IsA("ProximityPrompt") and p.Enabled then fireproximityprompt(p) end
+                        end
+                    end
+                else
+                    -- Code to find base and return
+                    for _,v in pairs(workspace.Bases:GetChildren()) do
+                        if v:FindFirstChild("Owner") and v.Owner.Value == Player.Name then
+                            char.HumanoidRootPart.CFrame = v.Claim.CFrame
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
