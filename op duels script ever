@@ -1,0 +1,57 @@
+local player = game.Players.LocalPlayer
+
+local LEFT_POS = Vector3.new(-50, 5, 0)
+local RIGHT_POS = Vector3.new(50, 5, 0)
+local BASE_POS = Vector3.new(0, 5, 50)
+
+local autoL = false
+local autoR = false
+
+local function tp(pos)
+    local char = player.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        char.HumanoidRootPart.CFrame = CFrame.new(pos)
+    end
+end
+
+local function grab()
+    local char = player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    
+    for _,v in pairs(workspace:GetDescendants()) do
+        if string.find(string.lower(v.Name), "brainrot") then
+            firetouchinterest(char.HumanoidRootPart, v, 0)
+            firetouchinterest(char.HumanoidRootPart, v, 1)
+        end
+    end
+end
+
+spawn(function()
+    while true do
+        task.wait(0.5)
+        if autoL then
+            tp(LEFT_POS)
+            task.wait(0.3)
+            grab()
+            task.wait(0.3)
+            tp(BASE_POS)
+        end
+    end
+end)
+
+spawn(function()
+    while true do
+        task.wait(0.5)
+        if autoR then
+            tp(RIGHT_POS)
+            task.wait(0.3)
+            grab()
+            task.wait(0.3)
+            tp(BASE_POS)
+        end
+    end
+end)
+
+-- Toggle (example)
+autoL = true
+-- autoR = true
