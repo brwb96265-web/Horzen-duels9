@@ -1,0 +1,102 @@
+-- Horzen Ultra GUI
+
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+getgenv().AutoFarm = false
+getgenv().AntiRagdoll = false
+getgenv().Range = 25
+
+local TweenService = game:GetService("TweenService")
+
+-- GUI
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "HorzenUltra"
+
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0,260,0,180)
+main.Position = UDim2.new(0.1,0,0.3,0)
+main.BackgroundColor3 = Color3.fromRGB(20,20,20)
+main.Active = true
+main.Draggable = true
+Instance.new("UICorner", main).CornerRadius = UDim.new(0,10)
+
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1,0,0,35)
+title.Text = "Horzen Ultra"
+title.TextColor3 = Color3.new(1,1,1)
+title.BackgroundTransparency = 1
+title.TextScaled = true
+
+local function createToggle(name, posY)
+    local btn = Instance.new("TextButton", main)
+    btn.Size = UDim2.new(1,-20,0,35)
+    btn.Position = UDim2.new(0,10,0,posY)
+    btn.Text = name.." : OFF"
+    btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+    btn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
+
+    btn.MouseEnter:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    end)
+
+    btn.MouseLeave:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+    end)
+
+    btn.MouseButton1Click:Connect(function()
+        if name == "AutoFarm" then
+            getgenv().AutoFarm = not getgenv().AutoFarm
+            btn.Text = name.." : "..(getgenv().AutoFarm and "ON" or "OFF")
+        elseif name == "AntiRagdoll" then
+            getgenv().AntiRagdoll = not getgenv().AntiRagdoll
+            btn.Text = name.." : "..(getgenv().AntiRagdoll and "ON" or "OFF")
+        end
+    end)
+end
+
+createToggle("AutoFarm",50)
+createToggle("AntiRagdoll",95)
+
+-- Smooth Move (no far TP)
+local function moveTo(part)
+    local dist = (hrp.Position - part.Position).Magnitude
+    if dist > getgenv().Range then return end
+
+    local tween = TweenService:Create(
+        hrp,
+        TweenInfo.new(0.15, Enum.EasingStyle.Linear),
+        {CFrame = part.CFrame + Vector3.new(0,1.5,0)}
+    )
+    tween:Play()
+end
+
+-- AutoFarm
+task.spawn(function()
+    while task.wait(0.1) do
+        if getgenv().AutoFarm then
+            for _,v in pairs(workspace:GetDescendants()) do
+                if v:IsA("BasePart") and v.Name:lower():find("brainrot") then
+                    moveTo(v)
+                    firetouchinterest(hrp, v, 0)
+                    firetouchinterest(hrp, v, 1)
+                end
+            end
+        end
+    end
+end)
+
+-- AntiRagdoll
+task.spawn(function()
+    while task.wait(0.2) do
+        if getgenv().AntiRagdoll then
+            for _,v in pairs(char:GetDescendants()) do
+                if v:IsA("BoolValue") and v.Name:lower():find("ragdoll") then
+                    v.Value = false
+                end
+            end
+        end
+    end
+end)
