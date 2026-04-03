@@ -1,0 +1,146 @@
+-- Horzen Hub PRO
+
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+local hum = char:WaitForChild("Humanoid")
+
+getgenv().AutoGrab = false
+getgenv().AutoLeft = false
+getgenv().AutoRight = false
+getgenv().AntiRagdoll = false
+getgenv().Speed = false
+getgenv().Jump = false
+
+-- GUI
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "HorzenHubPro"
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0,220,0,300)
+frame.Position = UDim2.new(0.1,0,0.3,0)
+frame.BackgroundColor3 = Color3.fromRGB(15,15,15)
+frame.Active = true
+frame.Draggable = true
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1,0,0,30)
+title.Text = "Horzen Hub PRO"
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.new(1,1,1)
+
+local function createButton(text, posY, callback)
+    local btn = Instance.new("TextButton", frame)
+    btn.Size = UDim2.new(1,-20,0,30)
+    btn.Position = UDim2.new(0,10,0,posY)
+    btn.Text = text
+    btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+    btn.TextColor3 = Color3.new(1,1,1)
+
+    btn.MouseButton1Click:Connect(function()
+        callback(btn)
+    end)
+end
+
+-- Buttons
+createButton("Auto Grab: OFF",40,function(btn)
+    getgenv().AutoGrab = not getgenv().AutoGrab
+    btn.Text = "Auto Grab: "..(getgenv().AutoGrab and "ON" or "OFF")
+end)
+
+createButton("Auto Left: OFF",75,function(btn)
+    getgenv().AutoLeft = not getgenv().AutoLeft
+    getgenv().AutoRight = false
+    btn.Text = "Auto Left: "..(getgenv().AutoLeft and "ON" or "OFF")
+end)
+
+createButton("Auto Right: OFF",110,function(btn)
+    getgenv().AutoRight = not getgenv().AutoRight
+    getgenv().AutoLeft = false
+    btn.Text = "Auto Right: "..(getgenv().AutoRight and "ON" or "OFF")
+end)
+
+createButton("Anti Ragdoll: OFF",145,function(btn)
+    getgenv().AntiRagdoll = not getgenv().AntiRagdoll
+    btn.Text = "Anti Ragdoll: "..(getgenv().AntiRagdoll and "ON" or "OFF")
+end)
+
+createButton("Speed Boost: OFF",180,function(btn)
+    getgenv().Speed = not getgenv().Speed
+    btn.Text = "Speed Boost: "..(getgenv().Speed and "ON" or "OFF")
+end)
+
+createButton("High Jump: OFF",215,function(btn)
+    getgenv().Jump = not getgenv().Jump
+    btn.Text = "High Jump: "..(getgenv().Jump and "ON" or "OFF")
+end)
+
+-- Systems
+
+-- Smart Auto Grab (nearest)
+task.spawn(function()
+    while task.wait(0.1) do
+        if getgenv().AutoGrab then
+            local closest = nil
+            local dist = math.huge
+
+            for _,v in pairs(workspace:GetDescendants()) do
+                if v.Name:lower():find("brainrot") and v:IsA("BasePart") then
+                    local d = (hrp.Position - v.Position).Magnitude
+                    if d < dist then
+                        dist = d
+                        closest = v
+                    end
+                end
+            end
+
+            if closest then
+                hrp.CFrame = closest.CFrame + Vector3.new(0,2,0)
+                task.wait(0.05)
+                firetouchinterest(hrp, closest, 0)
+                firetouchinterest(hrp, closest, 1)
+            end
+        end
+    end
+end)
+
+-- Movement
+task.spawn(function()
+    while task.wait() do
+        if getgenv().AutoLeft then
+            hrp.CFrame = hrp.CFrame * CFrame.new(-3,0,0)
+        elseif getgenv().AutoRight then
+            hrp.CFrame = hrp.CFrame * CFrame.new(3,0,0)
+        end
+    end
+end)
+
+-- Anti Ragdoll
+task.spawn(function()
+    while task.wait(0.2) do
+        if getgenv().AntiRagdoll then
+            for _,v in pairs(char:GetDescendants()) do
+                if v:IsA("BoolValue") and v.Name:lower():find("ragdoll") then
+                    v.Value = false
+                end
+            end
+        end
+    end
+end)
+
+-- Speed / Jump
+task.spawn(function()
+    while task.wait() do
+        if getgenv().Speed then
+            hum.WalkSpeed = 30
+        else
+            hum.WalkSpeed = 16
+        end
+
+        if getgenv().Jump then
+            hum.JumpPower = 80
+        else
+            hum.JumpPower = 50
+        end
+    end
+end)
